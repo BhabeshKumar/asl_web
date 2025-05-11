@@ -3,32 +3,39 @@ import axios from "axios";
 import Webcam from "react-webcam";
 
 export default function App() {
-  const webcamRef   = useRef(null);
-  const [raw, setRaw]         = useState("...");
+  const webcamRef = useRef(null);
+  const [raw, setRaw] = useState("...");
   const [cleaned, setCleaned] = useState("...");
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
+
+  // ✅ Set base URL for backend
+  const BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:8000";
 
   // ─── Buffer reset ───────────────────────────────────────────────────────
   const resetBuffer = async () => {
     try {
-      await axios.post("http://localhost:8000/reset");
+      await axios.post(`${BASE_URL}/reset`);
       setRaw("...");
       setCleaned("...");
-    } catch { setError("Could not reset buffer."); }
+    } catch {
+      setError("Could not reset buffer.");
+    }
   };
 
   // ─── Poll backend every second ──────────────────────────────────────────
   useEffect(() => {
     const id = setInterval(async () => {
       try {
-        const res = await axios.get("http://localhost:8000/buffer");
+        const res = await axios.get(`${BASE_URL}/buffer`);
         setRaw(res.data.raw || "...");
         setCleaned(res.data.cleaned || "...");
         setError(null);
-      } catch { setError("Backend offline"); }
+      } catch {
+        setError("Backend offline");
+      }
     }, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [BASE_URL]);
 
   return (
     <div className="min-h-screen bg-gray-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-900 via-slate-900 to-black text-white flex flex-col items-center px-4 py-8">
